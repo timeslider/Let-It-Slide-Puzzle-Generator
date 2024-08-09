@@ -6,6 +6,7 @@ namespace LetItSlide
     {
         internal static void Main(string[] args)
         {
+            PrintBurnsidesLemma(2, 8);
             // These puzzle have symmetries removed
             #region Generates v1 puzzles
             //int size = 3;
@@ -71,10 +72,11 @@ namespace LetItSlide
             //SavePuzzlesToFile(uniqueData, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size}.txt");
             #endregion
 
-            // These are v1 puzzle but they have single holes removed
+            //These are v1 puzzle but they have single holes removed
             #region Generates v2 puzzles
             int size = 5;
             HashSet<ulong> uniqueData = new HashSet<ulong>();
+
             object lockObject = new object();
 
             ulong maxIterations = 1UL << (size * size);
@@ -135,14 +137,14 @@ namespace LetItSlide
                 }
             });
             Console.WriteLine($"Number of unique {size}x{size} grids with no holes is: {uniqueData.Count}");
-            // Save the unique data to a file or process it further
+            //Save the unique data to a file or process it further
             SavePuzzlesToFile(uniqueData, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.txt");
             #endregion
 
             //int size = 4;
             //HashSet<ulong> puzzleData = LoadPuzzlesFromFile(@$"C:\Users\rober\Documents\PuzzleData for size {size} by {size}.txt");
             //Puzzle puzzle = new Puzzle(size);
-            
+
             //foreach(var data in puzzleData)
             //{
             //    Console.WriteLine(data);
@@ -250,6 +252,7 @@ namespace LetItSlide
                 data = newGrid;
             }
 
+            // This is nice, but it needs to be made more generic so it seaches all sub puzzles, not just ones with holes.
             public bool HasHoles()
             {
                 for (int row = 0; row < size; row++)
@@ -383,5 +386,42 @@ namespace LetItSlide
             }
             return puzzles;
         }
+
+        #region Burnside's Lemma
+        // Burnside's Lemma is used to calculate the number of puzzle minus the all the duplicates
+        // https://en.wikipedia.org/wiki/Burnside%27s_lemma
+        // These formulas come from Marko Riedel's answer on the following post:
+        // https://math.stackexchange.com/questions/570003/how-many-unique-patterns-exist-for-a-n-times-n-grid
+        // More info can also be found here:
+        // https://www.youtube.com/watch?v=D0d9bYZ_qDY
+        public static void PrintBurnsidesLemma(double colors, double size)
+        {
+            double sizeSqr = size * size;
+            double sizeSqrPlusSizeOverTwo = (sizeSqr + size) / 2;
+            // First term
+            double output = Math.Pow(colors, sizeSqr);
+
+            // The case that size was even
+            if (size % 2 == 0)
+            {
+                // Second term
+                output += 3 * Math.Pow(colors, sizeSqr / 2);
+                // Third term
+                output += 2 * Math.Pow(colors, sizeSqrPlusSizeOverTwo);
+                // Fourth term
+                output += 2 * Math.Pow(colors, sizeSqr / 4);
+            }
+            else
+            {
+                // Second term
+                output += 4 * Math.Pow(colors, sizeSqrPlusSizeOverTwo);
+                // Third term
+                output += 2 * Math.Pow(colors, (sizeSqr + 3) / 4);
+                // Fourth term
+                output += Math.Pow(colors, (sizeSqr + 1) / 2);
+            }
+            Console.WriteLine((output / 8).ToString("N19"));
+        }
+        #endregion
     }
 }
