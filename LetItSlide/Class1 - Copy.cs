@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.ComponentModel.Design.Serialization;
+using System.Drawing;
 
 namespace LetItSlide
 {
@@ -6,7 +7,7 @@ namespace LetItSlide
     {
         internal static void Main(string[] args)
         {
-            PrintBurnsidesLemma(2, 8);
+            //PrintBurnsidesLemma(2, 8);
             // These puzzle have symmetries removed
             #region Generates v1 puzzles
             //int size = 3;
@@ -72,74 +73,91 @@ namespace LetItSlide
             //SavePuzzlesToFile(uniqueData, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size}.txt");
             #endregion
 
+
             //These are v1 puzzle but they have single holes removed
             #region Generates v2 puzzles
-            int size = 5;
-            HashSet<ulong> uniqueData = new HashSet<ulong>();
+            //int size = 5;
+            //HashSet<ulong> uniqueData = new HashSet<ulong>();
 
-            object lockObject = new object();
+            //object lockObject = new object();
 
-            ulong maxIterations = 1UL << (size * size);
-            int chunkSize = 1000000;
+            //ulong maxIterations = 1UL << (size * size);
+            //int chunkSize = 1000000;
 
-            Parallel.For(0, (int)((maxIterations + (ulong)chunkSize - 1) / (ulong)chunkSize), chunkIndex =>
-            {
-                ulong start = (ulong)chunkIndex * (ulong)chunkSize;
-                ulong end = Math.Min(start + (ulong)chunkSize, maxIterations);
+            //Parallel.For(0, (int)((maxIterations + (ulong)chunkSize - 1) / (ulong)chunkSize), chunkIndex =>
+            //{
+            //    ulong start = (ulong)chunkIndex * (ulong)chunkSize;
+            //    ulong end = Math.Min(start + (ulong)chunkSize, maxIterations);
 
-                for (ulong i = start; i < end; i++)
-                {
-                    Puzzle puzzle = new Puzzle(size);
-                    puzzle.SetData(i);
+            //    for (ulong i = start; i < end; i++)
+            //    {
+            //        Puzzle puzzle = new Puzzle(size);
+            //        puzzle.SetData(i);
 
-                    // Check for holes before doing all the rotation checks
-                    if (puzzle.HasHoles())
-                    {
-                        continue;
-                    }
+            //        // Check for holes before doing all the rotation checks
+            //        if (puzzle.HasSubPuzzles())
+            //        {
+            //            continue;
+            //        }
 
-                    List<ulong> transformations = new List<ulong>
-                    {
-                        puzzle.GetData()
-                    };
+            //        List<ulong> transformations = new List<ulong>
+            //        {
+            //            puzzle.GetData()
+            //        };
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+            //        puzzle.Rotate90Clockwise();
+            //        transformations.Add(puzzle.GetData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+            //        puzzle.Rotate90Clockwise();
+            //        transformations.Add(puzzle.GetData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+            //        puzzle.Rotate90Clockwise();
+            //        transformations.Add(puzzle.GetData());
 
-                    puzzle.MirrorHorizontally();
-                    transformations.Add(puzzle.GetData());
+            //        puzzle.MirrorHorizontally();
+            //        transformations.Add(puzzle.GetData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+            //        puzzle.Rotate90Clockwise();
+            //        transformations.Add(puzzle.GetData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+            //        puzzle.Rotate90Clockwise();
+            //        transformations.Add(puzzle.GetData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+            //        puzzle.Rotate90Clockwise();
+            //        transformations.Add(puzzle.GetData());
 
-                    ulong minHash = ulong.MaxValue;
-                    foreach (var data in transformations)
-                    {
-                        minHash = Math.Min(minHash, data);
-                    }
+            //        ulong minHash = ulong.MaxValue;
+            //        foreach (var data in transformations)
+            //        {
+            //            minHash = Math.Min(minHash, data);
+            //        }
 
-                    lock (lockObject)
-                    {
-                        uniqueData.Add(minHash);
-                    }
-                }
-            });
-            Console.WriteLine($"Number of unique {size}x{size} grids with no holes is: {uniqueData.Count}");
-            //Save the unique data to a file or process it further
-            SavePuzzlesToFile(uniqueData, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.txt");
+            //        lock (lockObject)
+            //        {
+            //            uniqueData.Add(minHash);
+            //        }
+            //    }
+            //});
+            //Console.WriteLine($"Number of unique {size}x{size} grids with no holes is: {uniqueData.Count}");
+            ////Save the unique data to a file or process it further
+            //SavePuzzlesToFile(uniqueData, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.txt");
             #endregion
+
+
+
+            // Testing HasSubPuzzle
+            int size = 5;
+            Puzzle puzzle = new Puzzle(size);
+            puzzle.SetCell(0, 4, true);
+            puzzle.SetCell(1, 4, true);
+            puzzle.SetCell(2, 4, true);
+            puzzle.SetCell(3, 4, true);
+            puzzle.SetCell(4, 0, true);
+            puzzle.SetCell(4, 1, true);
+            puzzle.SetCell(4, 2, true);
+            puzzle.SetCell(4, 3, true);
+            puzzle.PrintPuzzle();
+            Console.WriteLine(puzzle.HasSubPuzzles());
 
             //int size = 4;
             //HashSet<ulong> puzzleData = LoadPuzzlesFromFile(@$"C:\Users\rober\Documents\PuzzleData for size {size} by {size}.txt");
@@ -253,108 +271,187 @@ namespace LetItSlide
             }
 
             // This is nice, but it needs to be made more generic so it seaches all sub puzzles, not just ones with holes.
-            public bool HasHoles()
+            //public bool HasHoles()
+            //{
+            //    for (int row = 0; row < size; row++)
+            //    {
+            //        for (int col = 0; col < size; col++)
+            //        {
+            //            if (GetCell(row, col) == false)
+            //            {
+            //                // Check top left corner
+            //                if(row == 0 &&  col == 0)
+            //                {
+            //                    if(GetCell(row, col + 1) == true && GetCell(row + 1, col) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole in the top left corner.");
+            //                        return true;
+            //                    }
+            //                }
+
+            //                // Check top edge
+            //                if(row == 0 && col > 0 && col < size - 1)
+            //                {
+            //                    if(GetCell(row, col - 1) == true && GetCell(row + 1, col) == true && GetCell(row, col + 1) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole along the top edge.");
+            //                        return true;
+            //                    }
+            //                }
+
+            //                // Check top right corner
+            //                if(row == 0 && col == size - 1)
+            //                {
+            //                    if (GetCell(row, col - 1) == true && GetCell(row + 1, col) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole in the top right corner.");
+            //                        return true;
+            //                    }
+            //                }
+
+            //                // Check left edge
+            //                if (row > 0 && row < size - 1 && col == 0)
+            //                {
+            //                    if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true && GetCell(row + 1, col) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole along the left edge.");
+            //                        return true;
+            //                    }
+            //                }
+
+            //                // Check middle
+            //                if (row > 0 && row < size -1 && col > 0 && col < size - 1)
+            //                {
+            //                    if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true && GetCell(row + 1, col) == true && GetCell(row, col - 1) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole in the middle.");
+            //                        return true;
+            //                    }
+            //                }
+
+            //                // Check right edge
+            //                if (row > 0 && row < size - 1 && col == size - 1)
+            //                {
+            //                    if (GetCell(row - 1, col) == true && GetCell(row, col - 1) == true && GetCell(row + 1, col) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole along the right edge.");
+            //                        return true;
+            //                    }
+            //                }
+
+
+            //                // Check bottom left corner
+            //                if (row == size - 1 && col == 0)
+            //                {
+            //                    if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole in the bottom left corner.");
+            //                        return true;
+            //                    }
+            //                }
+
+            //                //Check bottom edge
+            //                if (row == size - 1 && col > 0 && col < size - 1)
+            //                {
+            //                    if (GetCell(row, col - 1) == true && GetCell(row - 1, col) == true && GetCell(row, col + 1) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole along the bottom edge.");
+            //                        return true;
+            //                    }
+            //                }
+
+            //                // Check bottom right corner
+            //                if (row == size - 1 && col == size - 1)
+            //                {
+            //                    if (GetCell(row, col - 1) == true && GetCell(row - 1, col) == true)
+            //                    {
+            //                        //Console.WriteLine("This puzzle has a hole in the bottom right corner.");
+            //                        return true;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //    return false;
+            //}
+
+            public bool HasSubPuzzles()
             {
-                for (int row = 0; row < size; row++)
+                bool hasSubPuzzles = false;
+                // Loop over every size below the current puzzle size
+                for(int n = size - 1; n >= 0; n--)
                 {
-                    for (int col = 0; col < size; col++)
+                    Console.WriteLine($"n: {n}");
+                    for(int row = 0; row < size - n + 1; row++)
                     {
-                        if (GetCell(row, col) == false)
+                        for(int col = 0; col < size - n + 1; col++)
                         {
-                            // Check top left corner
-                            if(row == 0 &&  col == 0)
+                            // From here, we need to check for a loop.
+                            // Assume that the n x n grid is around position (row, col)
+                            // And that (row, col) is in the top left most cell of the n x n grid we are checking
+                            // Therefore we need to check for walls along row - 1, row + n, col - 1, and col + n
+                            // If any of these exceed the bounds of the puzzle, then move on to the next one
+                            // If all the walls exist, fill the n x n grid with wall and return true
+                            // Filling all the n x n grid with walls will ensure we capture the single one with filled walls
+                            // Without having to check the inner walls
+
+                            // Check the top edge
+                            // We only need to check above row, if row is greater than 0.
+                            if(row > 0)
                             {
-                                if(GetCell(row, col + 1) == true && GetCell(row + 1, col) == true)
+                                // Loop over each cell in the row
+                                for(int i = 0; i < n; i++)
                                 {
-                                    //Console.WriteLine("This puzzle has a hole in the top left corner.");
-                                    return true;
+                                    // If a cell is empty, return false
+                                    if(GetCell(row, col + i) == false)
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
 
-                            // Check top edge
-                            if(row == 0 && col > 0 && col < size - 1)
+                            // Check the left edge
+                            if(col > 0)
                             {
-                                if(GetCell(row, col - 1) == true && GetCell(row + 1, col) == true && GetCell(row, col + 1) == true)
+                                for(int i = 0; i < n; i++)
                                 {
-                                    //Console.WriteLine("This puzzle has a hole along the top edge.");
-                                    return true;
+                                    if( GetCell(row + i, col) == false)
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
 
-                            // Check top right corner
-                            if(row == 0 && col == size - 1)
+                            // Check bottom edge
+                            // Similar to how only need to check above row, if row is greater than 0,
+                            // We only need to check the bottom row if the current row + n is less than the puzzle size
+                            if (row + n < size)
                             {
-                                if (GetCell(row, col - 1) == true && GetCell(row + 1, col) == true)
+                                for(int i = 0; i < n; i++)
                                 {
-                                    //Console.WriteLine("This puzzle has a hole in the top right corner.");
-                                    return true;
-                                }
-                            }
-
-                            // Check left edge
-                            if (row > 0 && row < size - 1 && col == 0)
-                            {
-                                if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true && GetCell(row + 1, col) == true)
-                                {
-                                    //Console.WriteLine("This puzzle has a hole along the left edge.");
-                                    return true;
-                                }
-                            }
-
-                            // Check middle
-                            if (row > 0 && row < size -1 && col > 0 && col < size - 1)
-                            {
-                                if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true && GetCell(row + 1, col) == true && GetCell(row, col - 1) == true)
-                                {
-                                    //Console.WriteLine("This puzzle has a hole in the middle.");
-                                    return true;
+                                    if (GetCell(row + n, col + i) == false)
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
 
                             // Check right edge
-                            if (row > 0 && row < size - 1 && col == size - 1)
+                            if(col + n < size)
                             {
-                                if (GetCell(row - 1, col) == true && GetCell(row, col - 1) == true && GetCell(row + 1, col) == true)
+                                for(int i = 0; i < n; i++)
                                 {
-                                    //Console.WriteLine("This puzzle has a hole along the right edge.");
-                                    return true;
-                                }
-                            }
-
-
-                            // Check bottom left corner
-                            if (row == size - 1 && col == 0)
-                            {
-                                if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true)
-                                {
-                                    //Console.WriteLine("This puzzle has a hole in the bottom left corner.");
-                                    return true;
-                                }
-                            }
-
-                            //Check bottom edge
-                            if (row == size - 1 && col > 0 && col < size - 1)
-                            {
-                                if (GetCell(row, col - 1) == true && GetCell(row - 1, col) == true && GetCell(row, col + 1) == true)
-                                {
-                                    //Console.WriteLine("This puzzle has a hole along the bottom edge.");
-                                    return true;
-                                }
-                            }
-
-                            // Check bottom right corner
-                            if (row == size - 1 && col == size - 1)
-                            {
-                                if (GetCell(row, col - 1) == true && GetCell(row - 1, col) == true)
-                                {
-                                    //Console.WriteLine("This puzzle has a hole in the bottom right corner.");
-                                    return true;
+                                    if (GetCell(row + i, col + n) == false)
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
                         }
                     }
+                    Console.WriteLine();
                 }
-                return false;
+                return true;
             }
         }
 
