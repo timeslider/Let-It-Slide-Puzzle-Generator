@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using static LetItSlide.Class1;
 
+// Tarjan's Algorithm for Strongly Connected Components
 namespace LetItSlide
 {
     internal class Class1
@@ -10,147 +12,23 @@ namespace LetItSlide
         {
             //PrintBurnsidesLemma(2, 8);
             // These puzzle have symmetries removed
-            #region Generates v1 puzzles
-            //int size = 3;
-            //HashSet<ulong> uniqueData = new HashSet<ulong>();
-            //object lockObject = new object();
 
-            //ulong maxIterations = 1UL << (size * size);
-            //int chunkSize = 1000000;
-
-            //Parallel.For(0, (int)((maxIterations + (ulong)chunkSize - 1) / (ulong)chunkSize), chunkIndex =>
-            //{
-            //    ulong start = (ulong)chunkIndex * (ulong)chunkSize;
-            //    ulong end = Math.Min(start + (ulong)chunkSize, maxIterations);
-
-            //    for (ulong i = start; i < end; i++)
-            //    {
-            //        Puzzle puzzle = new Puzzle(size);
-            //        puzzle.SetData(i);
-
-            //        // Check for holes before doing all the rotation checks
-
-
-            //        List<ulong> transformations = new List<ulong>
-            //        {
-            //            puzzle.GetData()
-            //        };
-
-            //        puzzle.Rotate90Clockwise();
-            //        transformations.Add(puzzle.GetData());
-
-            //        puzzle.Rotate90Clockwise();
-            //        transformations.Add(puzzle.GetData());
-
-            //        puzzle.Rotate90Clockwise();
-            //        transformations.Add(puzzle.GetData());
-
-            //        puzzle.MirrorHorizontally();
-            //        transformations.Add(puzzle.GetData());
-
-            //        puzzle.Rotate90Clockwise();
-            //        transformations.Add(puzzle.GetData());
-
-            //        puzzle.Rotate90Clockwise();
-            //        transformations.Add(puzzle.GetData());
-
-            //        puzzle.Rotate90Clockwise();
-            //        transformations.Add(puzzle.GetData());
-
-            //        ulong minHash = ulong.MaxValue;
-            //        foreach (var data in transformations)
-            //        {
-            //            minHash = Math.Min(minHash, data);
-            //        }
-
-            //        lock (lockObject)
-            //        {
-            //            uniqueData.Add(minHash);
-            //        }
-            //    }
-            //});
-            //Console.WriteLine($"Number of unique {size}x{size} grids: {uniqueData.Count}");
-            //// Save the unique data to a file or process it further
-            //SavePuzzlesToFile(uniqueData, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size}.txt");
-            #endregion
+            // This function generates all puzzles of size 4 with sub puzzles and symmetries removed.
+            int iterations = 10;
+            long totalTime = 0;
+            int size = 5;
+            for(int i  = 0; i < iterations; i++)
+            {
+                Stopwatch watch = Stopwatch.StartNew();
+                GeneratePuzzles(5, false);
+                watch.Stop();
+                totalTime += watch.ElapsedMilliseconds;
+            }
+            Console.WriteLine($"It took {(totalTime / iterations) / 1000.0} seconds on average to process this function.");
 
 
             //These are v1 puzzle but they have single holes removed
-            #region Generates v2 puzzles
-            int size = 5;
-            HashSet<ulong> uniqueData = new HashSet<ulong>();
-
-            object lockObject = new object();
-
-            ulong maxIterations = 1UL << (size * size);
-            int chunkSize = 1000000;
-
-            Parallel.For(0, (int)((maxIterations + (ulong)chunkSize - 1) / (ulong)chunkSize), chunkIndex =>
-            {
-                Console.WriteLine(chunkIndex);
-                ulong start = (ulong)chunkIndex * (ulong)chunkSize;
-                ulong end = Math.Min(start + (ulong)chunkSize, maxIterations);
-
-                // DO NOT MOVE! For some reason, this has to be inside the parallel for loop
-                Puzzle puzzle = new Puzzle(size);
-                for (ulong i = start; i < end; i++)
-                {
-                    puzzle.SetData(i);
-
-                    //// Check for holes before doing all the rotation checks
-                    if (puzzle.HasSubPuzzles())
-                    {
-                        continue;
-                    }
-
-                    List<ulong> transformations = new List<ulong>
-                    {
-                        puzzle.GetData()
-                    };
-
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
-
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
-
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
-
-                    puzzle.MirrorHorizontally();
-                    transformations.Add(puzzle.GetData());
-
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
-
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
-
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
-
-                    ulong minHash = ulong.MaxValue;
-                    foreach (var data in transformations)
-                    {
-                        minHash = Math.Min(minHash, data);
-                    }
-
-                    lock (lockObject)
-                    {
-
-                        //This is for testing only. Please delete afterwards
-                        //uniqueData.Add(i);
-                        uniqueData.Add(minHash);
-                    }
-
-                }
-            });
-            Console.WriteLine($"Number of unique {size}x{size} grids with no holes is: {uniqueData.Count}");
-            //Save the unique data to a file or process it further
-            List<ulong> sortedList = new List<ulong>(uniqueData);
-            sortedList.Sort();
-            SavePuzzlesToFileBin(sortedList, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.bin");
-            #endregion
+            
 
             //int size = 5;
             //HashSet<ulong> puzzleData = LoadPuzzlesFromFile(@$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.tx");
@@ -577,6 +455,89 @@ namespace LetItSlide
             }
             return puzzles;
         }
+
+        #region Puzzle Generation
+
+        public static void GeneratePuzzles(int size, bool save)
+        {
+            HashSet<ulong> uniqueData = new HashSet<ulong>();
+
+            object lockObject = new object();
+
+            ulong maxIterations = 1UL << (size * size);
+            int chunkSize = 1000000;
+
+            Parallel.For(0, (int)((maxIterations + (ulong)chunkSize - 1) / (ulong)chunkSize), chunkIndex =>
+            {
+                ulong start = (ulong)chunkIndex * (ulong)chunkSize;
+                ulong end = Math.Min(start + (ulong)chunkSize, maxIterations);
+
+                // DO NOT MOVE! For some reason, this has to be inside the parallel for loop
+                Puzzle puzzle = new Puzzle(size);
+                for (ulong i = start; i < end; i++)
+                {
+                    puzzle.SetData(i);
+
+                    //// Check for holes before doing all the rotation checks
+                    if (puzzle.HasSubPuzzles())
+                    {
+                        continue;
+                    }
+
+                    List<ulong> transformations = new List<ulong>
+                    {
+                        puzzle.GetData()
+                    };
+
+                    puzzle.Rotate90Clockwise();
+                    transformations.Add(puzzle.GetData());
+
+                    puzzle.Rotate90Clockwise();
+                    transformations.Add(puzzle.GetData());
+
+                    puzzle.Rotate90Clockwise();
+                    transformations.Add(puzzle.GetData());
+
+                    puzzle.MirrorHorizontally();
+                    transformations.Add(puzzle.GetData());
+
+                    puzzle.Rotate90Clockwise();
+                    transformations.Add(puzzle.GetData());
+
+                    puzzle.Rotate90Clockwise();
+                    transformations.Add(puzzle.GetData());
+
+                    puzzle.Rotate90Clockwise();
+                    transformations.Add(puzzle.GetData());
+
+                    ulong minHash = ulong.MaxValue;
+                    foreach (var data in transformations)
+                    {
+                        minHash = Math.Min(minHash, data);
+                    }
+
+                    lock (lockObject)
+                    {
+
+                        //This is for testing only. Please delete afterwards
+                        //uniqueData.Add(i);
+                        uniqueData.Add(minHash);
+                    }
+
+                }
+            });
+            // Console.WriteLine($"Number of unique {size}x{size} grids with no holes is: {uniqueData.Count}");
+            //Save the unique data to a file or process it further
+            List<ulong> sortedList = new List<ulong>(uniqueData);
+            sortedList.Sort();
+            
+            // Sometimes we don't want to save, such as during testing
+            if(save == true)
+            {
+                SavePuzzlesToFileBin(sortedList, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.bin");
+            }
+        }
+        #endregion
 
         #region Burnside's Lemma
         // Burnside's Lemma is used to calculate the number of puzzle minus the all the duplicates
