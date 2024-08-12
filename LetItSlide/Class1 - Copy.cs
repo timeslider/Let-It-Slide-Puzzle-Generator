@@ -1,34 +1,88 @@
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using static LetItSlide.Class1;
 
 // Tarjan's Algorithm for Strongly Connected Components
+// 
 namespace LetItSlide
 {
     internal class Class1
     {
         internal static void Main(string[] args)
         {
+            GeneratePuzzles(5, false, false, true);
             //PrintBurnsidesLemma(2, 8);
             // These puzzle have symmetries removed
 
-            // This function generates all puzzles of size 4 with sub puzzles and symmetries removed.
-            int iterations = 10;
-            long totalTime = 0;
-            int size = 5;
-            for(int i  = 0; i < iterations; i++)
-            {
-                Stopwatch watch = Stopwatch.StartNew();
-                GeneratePuzzles(5, false);
-                watch.Stop();
-                totalTime += watch.ElapsedMilliseconds;
-            }
-            Console.WriteLine($"It took {(totalTime / iterations) / 1000.0} seconds on average to process this function.");
+            //int iterations = 10;
+            //long totalTime = 0;
+            //int size = 5;
+            //for (int i = 0; i < iterations; i++)
+            //{
+            //    Stopwatch watch = Stopwatch.StartNew();
+            //    // This function generates all puzzles of size 4 with sub puzzles and symmetries removed.
+            //    GeneratePuzzles(5, false, true, true);
+            //    watch.Stop();
+            //    totalTime += watch.ElapsedMilliseconds;
+            //}
+            //Console.WriteLine($"It took {(totalTime / iterations) / 1000.0} seconds on average to process this function.");
+
+            // Testing the move function
+            Puzzle puzzle = new Puzzle(6);
+
+            puzzle.SetWallData(123456978);
+
+            //Console.WriteLine(puzzle.HasSubPuzzles());
+
+
+            //Testing bitboard rotation
+            Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(64, '0'));
+            Console.WriteLine(puzzle.PrintPuzzle());
+            Console.WriteLine();
+            puzzle.Flip();
+            Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(64, '0'));
+            Console.WriteLine(puzzle.PrintPuzzle());
+            //puzzle.Rotate90ClockwiseBitBoard();
+
+
+            ////Test bitboard flips
+            //int iterations = 1000000000;
+            //long totalTime = 0;
+            //Stopwatch watch = Stopwatch.StartNew();
+            //for (int i = 0; i < iterations; i++)
+            //{
+            //    // This function generates all puzzles of size 4 with sub puzzles and symmetries removed.
+            //    puzzle.Flip();
+            //}
+            //watch.Stop();
+            //totalTime = watch.ElapsedMilliseconds;
+
+
+            //Console.WriteLine($"It took {totalTime / 1000.0} seconds on average to process this function.");
+
+            //// Testing move, not finished...
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine();
+
+            //puzzle.SetTileCell(4, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine();
+
+            //puzzle.Move(4, 4, Puzzle.Direction.Left);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine();
+
+            //puzzle.Move(4, 0, Puzzle.Direction.Up);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+
+            //puzzle.Move(2, 0, Puzzle.Direction.Right);
+            //Console.WriteLine(puzzle.PrintPuzzle());
 
 
             //These are v1 puzzle but they have single holes removed
-            
+
 
             //int size = 5;
             //HashSet<ulong> puzzleData = LoadPuzzlesFromFile(@$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.tx");
@@ -83,7 +137,8 @@ namespace LetItSlide
 
         public class Puzzle
         {
-            private ulong data;
+            private ulong wallData;
+            private ulong tileData;
             private int size;
             private List<int> powersOfTwos = new List<int>();
             
@@ -95,23 +150,34 @@ namespace LetItSlide
                     throw new ArgumentOutOfRangeException("Size must be between 2 and 8.");
                 }
                 this.size = size;
-                data = 0;
+                wallData = 0;
+                tileData = 0;
             }
 
 
-            public void SetData(ulong newData)
+            public void SetWallData(ulong newData)
             {
-                data = newData;
+                wallData = newData;
             }
 
-
-            public ulong GetData()
+            public void SetTileData(ulong newData)
             {
-                return data;
+                tileData = newData;
             }
 
 
-            public void SetCell(int row, int col, bool value)
+            public ulong GetWallData()
+            {
+                return wallData;
+            }
+
+            public ulong GetTileData()
+            {
+                return tileData;
+            }
+
+
+            public void SetWallCell(int row, int col, bool value)
             {
                 if (row < 0 || row >= size || col < 0 || col >= size)
                 {
@@ -121,16 +187,39 @@ namespace LetItSlide
                 int bitPosition = row * size + col;
                 if (value)
                 {
-                    data |= (1UL << bitPosition);
+                    wallData |= (1UL << bitPosition);
                 }
                 else
                 {
-                    data &= ~(1UL << bitPosition);
+                    wallData &= ~(1UL << bitPosition);
                 }
             }
 
+            public void SetTileCell(int row, int col, bool value)
+            {
+                //// See if the following code works. Taken from: https://www.youtube.com/watch?v=MzfQ8H16n0M
+                //long SetCellState(long bitboard, int row, int col)
+                //{
+                //    long newBit = 1L << (row * size + col);
+                //    return (bitboard |= newBit);
+                //}
+                if (row < 0 || row >= size || col < 0 || col >= size)
+                {
+                    throw new ArgumentOutOfRangeException("Row and column must be within the grid size.");
+                }
 
-            public bool GetCell(int row, int col)
+                int bitPosition = row * size + col;
+                if (value)
+                {
+                    tileData |= (1UL << bitPosition);
+                }
+                else
+                {
+                    tileData &= ~(1UL << bitPosition);
+                }
+            }
+
+            public bool GetWallCell(int row, int col)
             {
                 if (row < 0 || row >= size || col < 0 || col >= size)
                 {
@@ -138,7 +227,18 @@ namespace LetItSlide
                 }
 
                 int bitPosition = row * size + col;
-                return (data & (1UL << bitPosition)) != 0;
+                return (wallData & (1UL << bitPosition)) != 0;
+            }
+
+            public bool GetTileCell(int row, int col)
+            {
+                if (row < 0 || row >= size || col < 0 || col >= size)
+                {
+                    throw new ArgumentOutOfRangeException("Row and column must be within the grid size.");
+                }
+
+                int bitPosition = row * size + col;
+                return (tileData & (1UL << bitPosition)) != 0;
             }
 
 
@@ -149,7 +249,8 @@ namespace LetItSlide
                 {
                     for (int col = 0; col < size; col++)
                     {
-                        sb.Append(GetCell(row, col) ? "1 " : "0 ");
+                        // Horrible readability...
+                        sb.Append(GetWallCell(row, col) ? "1 " : GetTileCell(row, col) ? "T " : "0 ");
                     }
                     sb.Append('\n');
                 }
@@ -164,7 +265,7 @@ namespace LetItSlide
                 {
                     for (int col = 0; col < size; col++)
                     {
-                        if (GetCell(row, col))
+                        if (GetWallCell(row, col))
                         {
                             int newRow = col;
                             int newCol = size - 1 - row;
@@ -173,7 +274,81 @@ namespace LetItSlide
                         }
                     }
                 }
-                data = newData;
+                wallData = newData;
+            }
+
+            public void Rotate90ClockwiseBitBoard()
+            {
+                if (size == 5)
+                {
+                    ulong r0 = ((wallData & 0b0000100001000010000100001) * 0b0000100010001000100010000) >> 0;
+                    ulong r1 = ((wallData & 0b0001000010000100001000010) * 0b0000010001000100010001000) >> 27;
+                    ulong r2 = ((wallData & 0b0010000100001000010000100) * 0b0000001000100010001000100) >> 27;
+                    ulong r3 = ((wallData & 0b0100001000010000100001000) * 0b0000000100010001000100010) >> 27;
+                    ulong r4 = ((wallData & 0b1000010000100001000010000) * 0b0000000010001000100010001) >> 27;
+                    wallData = r0 | (r1 << 5) | (r2 << 10) | (r3 << 15) | (r4 << 20);
+                }
+                if (size == 8)
+                {
+                    wallData = (((wallData >> 3) | (wallData << 3)) & 63) ^ 7;
+                    wallData = ((wallData * 0x20800000) >>> 26) ^ 7;
+
+                }
+            }
+
+
+            public void Flip()
+            {
+                if (size == 2)
+                {
+                    wallData = ((wallData << 2) & 0b0000000000000000000000000000000000000000000000000000000000001100) |
+                               ((wallData >> 2) & 0b0000000000000000000000000000000000000000000000000000000000000011);
+                }
+                if (size == 3)
+                {
+                    wallData = ((wallData << 6) & 0b0000000000000000000000000000000000000000000000000000000111000000) |
+                               ((wallData)      & 0b0000000000000000000000000000000000000000000000000000000000111000) |
+                               ((wallData >> 6) & 0b0000000000000000000000000000000000000000000000000000000000000111);
+                }
+                if (size == 4)
+                {
+                    wallData = ((wallData << 12) & 0b0000000000000000000000000000000000000000000000001111000000000000) |
+                               ((wallData << 4)  & 0b0000000000000000000000000000000000000000000000000000111100000000) |
+                               ((wallData >> 4)  & 0b0000000000000000000000000000000000000000000000000000000011110000) |
+                               ((wallData >> 12) & 0b0000000000000000000000000000000000000000000000000000000000001111);
+                }
+                if (size == 5)
+                {
+                    wallData = ((wallData << 20) & 0b0000000000000000000000000000000000000001111100000000000000000000) |
+                               ((wallData << 10) & 0b0000000000000000000000000000000000000000000011111000000000000000) |
+                               ((wallData)       & 0b0000000000000000000000000000000000000000000000000111110000000000) |
+                               ((wallData >> 10) & 0b0000000000000000000000000000000000000000000000000000001111100000) |
+                               ((wallData >> 20) & 0b0000000000000000000000000000000000000000000000000000000000011111);
+                }
+                if (size == 6)
+                {
+                    wallData = ((wallData << 30) & 0b0000000000000000000000000000111111000000000000000000000000000000) |
+                               ((wallData << 18) & 0b0000000000000000000000000000000000111111000000000000000000000000) |
+                               ((wallData << 6)  & 0b0000000000000000000000000000000000000000111111000000000000000000) |
+                               ((wallData >> 6)  & 0b0000000000000000000000000000000000000000000000111111000000000000) |
+                               ((wallData >> 18) & 0b0000000000000000000000000000000000000000000000000000111111000000) |
+                               ((wallData >> 30) & 0b0000000000000000000000000000000000000000000000000000000000111111);
+                }
+
+                //if (size == 7)
+
+                if (size == 8)
+                {
+                    wallData = (wallData << 56) |
+                    ((wallData << 40) & 0b0000000011111111000000000000000000000000000000000000000000000000) |
+                    ((wallData << 24) & 0b0000000000000000111111110000000000000000000000000000000000000000) |
+                    ((wallData << 8)  & 0b0000000000000000000000001111111100000000000000000000000000000000) |
+                    ((wallData >> 8)  & 0b0000000000000000000000000000000011111111000000000000000000000000) |
+                    ((wallData >> 24) & 0b0000000000000000000000000000000000000000111111110000000000000000) |
+                    ((wallData >> 40) & 0b0000000000000000000000000000000000000000000000001111111100000000) |
+                    ((wallData >> 56));
+
+                }
             }
 
 
@@ -184,7 +359,7 @@ namespace LetItSlide
                 {
                     for (int col = 0; col < size; col++)
                     {
-                        if (GetCell(row, col))
+                        if (GetWallCell(row, col))
                         {
                             int newCol = size - 1 - col;
                             int bitPosition = row * size + newCol;
@@ -192,7 +367,7 @@ namespace LetItSlide
                         }
                     }
                 }
-                data = newGrid;
+                wallData = newGrid;
             }
 
             // This is nice, but it needs to be made more generic so it seaches all sub puzzles, not just ones with holes.
@@ -305,6 +480,7 @@ namespace LetItSlide
 
             public bool HasSubPuzzles()
             {
+                // This can probably be speed up via bit manipulation
                 // Loop over every size below the current puzzle size
                 for(int n = size - 1; n > 0; n--)
                 {
@@ -330,7 +506,7 @@ namespace LetItSlide
                                 for(int i = 0; i < n; i++)
                                 {
                                     // If a cell is empty, return false
-                                    if(GetCell(row - 1, col + i) == false)
+                                    if(GetWallCell(row - 1, col + i) == false)
                                     {
                                         hasSubPuzzles = false;
                                         break;
@@ -343,7 +519,7 @@ namespace LetItSlide
                             {
                                 for(int i = 0; i < n; i++)
                                 {
-                                    if( GetCell(row + i, col - 1) == false)
+                                    if( GetWallCell(row + i, col - 1) == false)
                                     {
                                         hasSubPuzzles = false;
                                         break;
@@ -358,7 +534,7 @@ namespace LetItSlide
                             {
                                 for(int i = 0; i < n; i++)
                                 {
-                                    if (GetCell(row + n, col + i) == false)
+                                    if (GetWallCell(row + n, col + i) == false)
                                     {
                                         hasSubPuzzles = false;
                                         break;
@@ -371,7 +547,7 @@ namespace LetItSlide
                             {
                                 for(int i = 0; i < n; i++)
                                 {
-                                    if (GetCell(row + i, col + n) == false)
+                                    if (GetWallCell(row + i, col + n) == false)
                                     {
                                         hasSubPuzzles = false;
                                         break;
@@ -392,11 +568,77 @@ namespace LetItSlide
                 return false;
             }
 
+            public enum Direction
+            {
+                Up,
+                Down,
+                Left,
+                Right
+            }
+
+            public Puzzle Move(int row, int col, Direction direction)
+            {
+                // It might be quicker if we create a data structure that is prepopulated with info about how you can move
+                // For example, row 2, col 3 might be able to move 1 unit up, 2 units down, 3 to the left, and 2 to right (just making up numbers)
+                // These numbers can be stored in a data structure, so instead of looping to find where the wall is
+                // You could access this data. 
+                Puzzle newPuzzle = new Puzzle(size);
+                newPuzzle.SetTileData(tileData);
+                if (GetTileCell(row, col) == false)
+                {
+                    throw new ArgumentOutOfRangeException("There is no moveable tile at that location.");
+                }
+
+                if (direction == Direction.Up)
+                {
+                    int i = 1;
+                    while (row - i > 0 && GetWallCell(row - i, col) == false && GetTileCell(row - i, col) == false)
+                    {
+                        i++;
+                    }
+                    // Unset the original
+                    newPuzzle.SetTileCell(row, col, false);
+                    // Set the new one
+                    newPuzzle.SetTileCell(row - i + 1, col, true);
+                }
+
+                if (direction == Direction.Left)
+                {
+                    int i = 1;
+                    while (col - i > 0 && GetWallCell(row, col - i) == false && GetTileCell(row, col - i) == false)
+                    {
+
+                        i++;
+                    }
+                    newPuzzle.SetTileCell(row, col, false);
+                    newPuzzle.SetTileCell(row, col - i, true);
+
+                }
+
+                if (direction == Direction.Down)
+                {
+                    int i = 1;
+                    while (col - i > 0 && GetWallCell(row, col - i) == false && GetTileCell(row, col - i) == false)
+                    {
+
+                        i++;
+                    }
+                    newPuzzle.SetTileCell(row, col, false);
+                    newPuzzle.SetTileCell(row, col - i, true);
+
+                }
+
+                return newPuzzle;
+            }
+
+
             //public void FillSubMatrix(int row, int col, int n)
             //{
             //    int row ** row;
             //}
         }
+
+
 
         static void SavePuzzlesToFile(HashSet<ulong> puzzles, string filePath)
         {
@@ -458,7 +700,7 @@ namespace LetItSlide
 
         #region Puzzle Generation
 
-        public static void GeneratePuzzles(int size, bool save)
+        public static void GeneratePuzzles(int size, bool save, bool excludeSubPuzzles, bool excludeSymmetries)
         {
             HashSet<ulong> uniqueData = new HashSet<ulong>();
 
@@ -476,66 +718,76 @@ namespace LetItSlide
                 Puzzle puzzle = new Puzzle(size);
                 for (ulong i = start; i < end; i++)
                 {
-                    puzzle.SetData(i);
+                    puzzle.SetWallData(i);
 
-                    //// Check for holes before doing all the rotation checks
-                    if (puzzle.HasSubPuzzles())
+                    // Check for holes before doing all the rotation checks
+                    if (excludeSubPuzzles == true)
                     {
-                        continue;
+                        if (puzzle.HasSubPuzzles())
+                        {
+                            continue;
+                        }
                     }
 
-                    List<ulong> transformations = new List<ulong>
+                    //// This is for testing
+                    //lock (lockObject)
+                    //{
+                    //    uniqueData.Add(i);
+                    //}
+
+                    if (excludeSymmetries == true)
                     {
-                        puzzle.GetData()
-                    };
+                        List<ulong> transformations = new List<ulong>
+                        {
+                            puzzle.GetWallData()
+                        };
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+                        puzzle.Rotate90Clockwise();
+                        transformations.Add(puzzle.GetWallData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+                        puzzle.Rotate90Clockwise();
+                        transformations.Add(puzzle.GetWallData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+                        puzzle.Rotate90Clockwise();
+                        transformations.Add(puzzle.GetWallData());
 
-                    puzzle.MirrorHorizontally();
-                    transformations.Add(puzzle.GetData());
+                        puzzle.Flip();
+                        transformations.Add(puzzle.GetWallData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+                        puzzle.Rotate90Clockwise();
+                        transformations.Add(puzzle.GetWallData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+                        puzzle.Rotate90Clockwise();
+                        transformations.Add(puzzle.GetWallData());
 
-                    puzzle.Rotate90Clockwise();
-                    transformations.Add(puzzle.GetData());
+                        puzzle.Rotate90Clockwise();
+                        transformations.Add(puzzle.GetWallData());
 
-                    ulong minHash = ulong.MaxValue;
-                    foreach (var data in transformations)
-                    {
-                        minHash = Math.Min(minHash, data);
-                    }
+                        ulong minHash = ulong.MaxValue;
+                        foreach (var data in transformations)
+                        {
+                            minHash = Math.Min(minHash, data);
+                        }
 
-                    lock (lockObject)
-                    {
-
-                        //This is for testing only. Please delete afterwards
-                        //uniqueData.Add(i);
-                        uniqueData.Add(minHash);
+                        lock (lockObject)
+                        {
+                            uniqueData.Add(minHash);
+                        }
                     }
 
                 }
             });
-            // Console.WriteLine($"Number of unique {size}x{size} grids with no holes is: {uniqueData.Count}");
-            //Save the unique data to a file or process it further
+            // At this point, uniqueData has all the data we want; however, it's unsorted because of the Parallel.For loop
             List<ulong> sortedList = new List<ulong>(uniqueData);
             sortedList.Sort();
             
             // Sometimes we don't want to save, such as during testing
             if(save == true)
             {
+                //Save the unique data to a file or process it further
                 SavePuzzlesToFileBin(sortedList, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.bin");
             }
+            Console.WriteLine($"Number of unique {size}x{size} grids with no holes is: {uniqueData.Count}");
         }
         #endregion
 
@@ -546,6 +798,12 @@ namespace LetItSlide
         // https://math.stackexchange.com/questions/570003/how-many-unique-patterns-exist-for-a-n-times-n-grid
         // More info can also be found here:
         // https://www.youtube.com/watch?v=D0d9bYZ_qDY
+        
+        /// <summary>
+        /// Calculates the number of puzzle minus the all the duplicates
+        /// </summary>
+        /// <param name="colors">We're using only black and white so this is typically going to be 2</param>
+        /// <param name="size">The length of one side of a puzzle</param>
         public static void PrintBurnsidesLemma(double colors, double size)
         {
             double sizeSqr = size * size;
