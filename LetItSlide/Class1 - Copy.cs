@@ -3,16 +3,24 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using static LetItSlide.Class1;
+using System.Numerics;
+using System.Runtime.Intrinsics.X86;
 
+// TODO
+// I've redone mirror and rotate so they're about 70 times faster
+// However, the GeneratePuzzle function no longer works. Need to debug
+// HasSubPuzzle can probably be make a lot quicker with bit manipulation
+// Finish writing LoadPuzleFromFileBin
 // Tarjan's Algorithm for Strongly Connected Components
-// 
 namespace LetItSlide
 {
     internal class Class1
     {
         internal static void Main(string[] args)
         {
-            GeneratePuzzles(5, false, false, true);
+
+            //GeneratePuzzles(5, true, true, true);
+
             //PrintBurnsidesLemma(2, 8);
             // These puzzle have symmetries removed
 
@@ -30,37 +38,11 @@ namespace LetItSlide
             //Console.WriteLine($"It took {(totalTime / iterations) / 1000.0} seconds on average to process this function.");
 
             // Testing the move function
-            Puzzle puzzle = new Puzzle(6);
-
-            puzzle.SetWallData(123456978);
-
-            //Console.WriteLine(puzzle.HasSubPuzzles());
 
 
-            //Testing bitboard rotation
-            Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(64, '0'));
-            Console.WriteLine(puzzle.PrintPuzzle());
-            Console.WriteLine();
-            puzzle.Flip();
-            Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(64, '0'));
-            Console.WriteLine(puzzle.PrintPuzzle());
-            //puzzle.Rotate90ClockwiseBitBoard();
 
 
-            ////Test bitboard flips
-            //int iterations = 1000000000;
-            //long totalTime = 0;
-            //Stopwatch watch = Stopwatch.StartNew();
-            //for (int i = 0; i < iterations; i++)
-            //{
-            //    // This function generates all puzzles of size 4 with sub puzzles and symmetries removed.
-            //    puzzle.Flip();
-            //}
-            //watch.Stop();
-            //totalTime = watch.ElapsedMilliseconds;
 
-
-            //Console.WriteLine($"It took {totalTime / 1000.0} seconds on average to process this function.");
 
             //// Testing move, not finished...
             //Console.WriteLine(puzzle.PrintPuzzle());
@@ -84,16 +66,23 @@ namespace LetItSlide
             //These are v1 puzzle but they have single holes removed
 
 
-            //int size = 5;
-            //HashSet<ulong> puzzleData = LoadPuzzlesFromFile(@$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.tx");
+            int size = 5;
+            Puzzle puzzle = new Puzzle(size);
+            var puzzleData = LoadPuzzlesFromFileBin(@$"c:\users\rober\documents\puzzledata for size {size} by {size} no holes.tx");
 
-            //foreach (var data in puzzleData)
-            //{
-            //    Console.WriteLine(data);
-            //    puzzle.SetData(data);
-            //    puzzle.PrintPuzzle();
-            //    Console.WriteLine();
-            //}
+            int i = 0;
+            foreach (var data in puzzleData)
+            {
+                if (i > 100)
+                {
+                    break;
+                }
+                Console.WriteLine(data);
+                puzzle.SetWallData(data);
+                puzzle.PrintPuzzle();
+                Console.WriteLine();
+                i++;
+            }
 
             // Testing HasSubPuzzle
             //int size = 5;
@@ -141,7 +130,9 @@ namespace LetItSlide
             private ulong tileData;
             private int size;
             private List<int> powersOfTwos = new List<int>();
-            
+
+            // Testing ChatGPT
+            private static readonly ulong[] Rotate90Lookup = new ulong[32];
 
             public Puzzle(int size)
             {
@@ -277,23 +268,23 @@ namespace LetItSlide
                 wallData = newData;
             }
 
-            public void Rotate90ClockwiseBitBoard()
+            // This rotates and flips
+            public void Rotate90andFlip()
             {
-                if (size == 5)
-                {
-                    ulong r0 = ((wallData & 0b0000100001000010000100001) * 0b0000100010001000100010000) >> 0;
-                    ulong r1 = ((wallData & 0b0001000010000100001000010) * 0b0000010001000100010001000) >> 27;
-                    ulong r2 = ((wallData & 0b0010000100001000010000100) * 0b0000001000100010001000100) >> 27;
-                    ulong r3 = ((wallData & 0b0100001000010000100001000) * 0b0000000100010001000100010) >> 27;
-                    ulong r4 = ((wallData & 0b1000010000100001000010000) * 0b0000000010001000100010001) >> 27;
-                    wallData = r0 | (r1 << 5) | (r2 << 10) | (r3 << 15) | (r4 << 20);
-                }
-                if (size == 8)
-                {
-                    wallData = (((wallData >> 3) | (wallData << 3)) & 63) ^ 7;
-                    wallData = ((wallData * 0x20800000) >>> 26) ^ 7;
+                wallData = bit_permute_step(wallData, 0x00006300, 16);
+                wallData = bit_permute_step(wallData, 0x020a080a, 4);
+                wallData = bit_permute_step(wallData, 0x0063008c, 8);
+                wallData = bit_permute_step(wallData, 0x00006310, 16);
+            }
 
-                }
+            public void Rotate90Fast()
+            {
+                ulong r0 = Bmi2.X64.ParallelBitExtract(wallData, 0b0000100001000010000100001);
+                ulong r1 = Bmi2.X64.ParallelBitExtract(wallData, 0b0001000010000100001000010);
+                ulong r2 = Bmi2.X64.ParallelBitExtract(wallData, 0b0010000100001000010000100);
+                ulong r3 = Bmi2.X64.ParallelBitExtract(wallData, 0b0100001000010000100001000);
+                ulong r4 = Bmi2.X64.ParallelBitExtract(wallData, 0b1000010000100001000010000);
+                wallData = r0 | (r1 << 5) | (r2 << 10) | (r3 << 15) | (r4 << 20);
             }
 
 
@@ -369,112 +360,6 @@ namespace LetItSlide
                 }
                 wallData = newGrid;
             }
-
-            // This is nice, but it needs to be made more generic so it seaches all sub puzzles, not just ones with holes.
-            //public bool HasHoles()
-            //{
-            //    for (int row = 0; row < size; row++)
-            //    {
-            //        for (int col = 0; col < size; col++)
-            //        {
-            //            if (GetCell(row, col) == false)
-            //            {
-            //                // Check top left corner
-            //                if(row == 0 &&  col == 0)
-            //                {
-            //                    if(GetCell(row, col + 1) == true && GetCell(row + 1, col) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole in the top left corner.");
-            //                        return true;
-            //                    }
-            //                }
-
-            //                // Check top edge
-            //                if(row == 0 && col > 0 && col < size - 1)
-            //                {
-            //                    if(GetCell(row, col - 1) == true && GetCell(row + 1, col) == true && GetCell(row, col + 1) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole along the top edge.");
-            //                        return true;
-            //                    }
-            //                }
-
-            //                // Check top right corner
-            //                if(row == 0 && col == size - 1)
-            //                {
-            //                    if (GetCell(row, col - 1) == true && GetCell(row + 1, col) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole in the top right corner.");
-            //                        return true;
-            //                    }
-            //                }
-
-            //                // Check left edge
-            //                if (row > 0 && row < size - 1 && col == 0)
-            //                {
-            //                    if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true && GetCell(row + 1, col) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole along the left edge.");
-            //                        return true;
-            //                    }
-            //                }
-
-            //                // Check middle
-            //                if (row > 0 && row < size -1 && col > 0 && col < size - 1)
-            //                {
-            //                    if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true && GetCell(row + 1, col) == true && GetCell(row, col - 1) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole in the middle.");
-            //                        return true;
-            //                    }
-            //                }
-
-            //                // Check right edge
-            //                if (row > 0 && row < size - 1 && col == size - 1)
-            //                {
-            //                    if (GetCell(row - 1, col) == true && GetCell(row, col - 1) == true && GetCell(row + 1, col) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole along the right edge.");
-            //                        return true;
-            //                    }
-            //                }
-
-
-            //                // Check bottom left corner
-            //                if (row == size - 1 && col == 0)
-            //                {
-            //                    if (GetCell(row - 1, col) == true && GetCell(row, col + 1) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole in the bottom left corner.");
-            //                        return true;
-            //                    }
-            //                }
-
-            //                //Check bottom edge
-            //                if (row == size - 1 && col > 0 && col < size - 1)
-            //                {
-            //                    if (GetCell(row, col - 1) == true && GetCell(row - 1, col) == true && GetCell(row, col + 1) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole along the bottom edge.");
-            //                        return true;
-            //                    }
-            //                }
-
-            //                // Check bottom right corner
-            //                if (row == size - 1 && col == size - 1)
-            //                {
-            //                    if (GetCell(row, col - 1) == true && GetCell(row - 1, col) == true)
-            //                    {
-            //                        //Console.WriteLine("This puzzle has a hole in the bottom right corner.");
-            //                        return true;
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //    return false;
-            //}
-
 
             //public bool HasSubPuzzles(StringBuilder sb)
 
@@ -742,25 +627,25 @@ namespace LetItSlide
                             puzzle.GetWallData()
                         };
 
-                        puzzle.Rotate90Clockwise();
+                        puzzle.Rotate90Fast();
                         transformations.Add(puzzle.GetWallData());
 
-                        puzzle.Rotate90Clockwise();
+                        puzzle.Rotate90Fast();
                         transformations.Add(puzzle.GetWallData());
 
-                        puzzle.Rotate90Clockwise();
+                        puzzle.Rotate90Fast();
                         transformations.Add(puzzle.GetWallData());
 
                         puzzle.Flip();
                         transformations.Add(puzzle.GetWallData());
 
-                        puzzle.Rotate90Clockwise();
+                        puzzle.Rotate90Fast();
                         transformations.Add(puzzle.GetWallData());
 
-                        puzzle.Rotate90Clockwise();
+                        puzzle.Rotate90Fast();
                         transformations.Add(puzzle.GetWallData());
 
-                        puzzle.Rotate90Clockwise();
+                        puzzle.Rotate90Fast();
                         transformations.Add(puzzle.GetWallData());
 
                         ulong minHash = ulong.MaxValue;
@@ -833,5 +718,13 @@ namespace LetItSlide
             Console.WriteLine((output / 8).ToString("N19"));
         }
         #endregion
+
+        public static ulong bit_permute_step(ulong x, ulong m, int shift)
+        {
+            ulong temp;
+            temp = ((x >> shift) ^ x) & m;
+            x = (x ^ temp) ^ (temp << shift);
+            return x;
+        }
     }
 }
