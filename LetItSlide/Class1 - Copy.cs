@@ -8,8 +8,7 @@ using System.Runtime.Intrinsics.X86;
 
 // TODO
 // I've redone mirror and rotate so they're about 70 times faster
-// However, the GeneratePuzzle function no longer works. Need to debug
-// HasSubPuzzle can probably be make a lot quicker with bit manipulation
+// HasSubPuzzle can probably be make a lot quicker with bit manipulation: Working on this now
 // Finish writing LoadPuzleFromFileBin
 // Tarjan's Algorithm for Strongly Connected Components
 namespace LetItSlide
@@ -18,8 +17,582 @@ namespace LetItSlide
     {
         internal static void Main(string[] args)
         {
+            //Timing Puzzle generation
+            Stopwatch watch = Stopwatch.StartNew();
+            GeneratePuzzles(5, false, false, false);
+            watch.Stop();
+            Console.WriteLine(watch.Elapsed.ToString());
 
-            //GeneratePuzzles(5, true, true, true);
+            // LUT Table creation
+            Puzzle puzzle = new Puzzle(5);
+
+            //// 1x1 for a 5x5
+            //// Upper corner
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(1, 0, true);
+
+            //// one over
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(0, 2, true);
+
+            //// one over
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(0, 3, true);
+
+            //// one over
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(0, 4, true);
+
+            //// one over
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(1, 4, true);
+
+            //// back to start, down one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// Over one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(1, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// Over one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// Over one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// Over one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 4, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// back to start, down one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// back to start, down one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// back to start, down one
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 1, true);
+            ////puzzle.SetWallCell(4, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(4, 1, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(4, 2, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(4, 3, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+
+            // 2x2 for a 5x5
+            // Upper corner
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(0, 4, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// 2nd row
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(0, 4, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// 3rd row
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// 4th row
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 2, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// 1st row 3x3
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 4, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(3, 2, true);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// 2nd row 3x3
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(0, 4, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// 3rd row 3x3
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(2, 3, true);
+            //puzzle.SetWallCell(3, 3, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 1, true);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 2, true);
+            //puzzle.SetWallCell(1, 3, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 1, true);
+            //puzzle.SetWallCell(3, 1, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// 1st row 4x4
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 4, true);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 1, true);
+            //puzzle.SetWallCell(4, 2, true);
+            //puzzle.SetWallCell(4, 3, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            // 2nd row 4x4
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 4, true);
+            //puzzle.SetWallCell(2, 4, true);
+            //puzzle.SetWallCell(3, 4, true);
+            //puzzle.SetWallCell(4, 4, true);
+            //puzzle.SetWallCell(0, 0, true);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(0, 3, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //puzzle.SetWallData(0);
+            //puzzle.SetWallCell(1, 0, true);
+            //puzzle.SetWallCell(2, 0, true);
+            //puzzle.SetWallCell(3, 0, true);
+            //puzzle.SetWallCell(4, 0, true);
+            //puzzle.SetWallCell(0, 1, true);
+            //puzzle.SetWallCell(0, 2, true);
+            //puzzle.SetWallCell(0, 3, true);
+            //puzzle.SetWallCell(0, 4, true);
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+
+            //// Timing Puzzle HasSubPuzzle
+            //Stopwatch watch = Stopwatch.StartNew();
+            ////GeneratePuzzles(5, false, false, true);
+
+            //Puzzle tempPuzzle = new Puzzle(5);
+            //ulong start = 0;
+            //ulong count = 33_554_431;
+            //// Testing LUT
+            //for (ulong i = start; i < start + count; i++)
+            //{
+            //    tempPuzzle.SetWallData(i);
+            //    tempPuzzle.HasSubPuzzlesNew();
+            //}
+            //watch.Stop();
+            //Console.WriteLine(watch.Elapsed.ToString());
+
+
+
+
+
+            //Puzzle puzzle = new Puzzle(5);
+            //ulong puzzleInt = 55003UL;
+            //puzzle.SetWallData(puzzleInt);
+            //Console.WriteLine("Original");
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine();
+            //puzzle.Rotate90Clockwise();
+            //Console.WriteLine("Original Rotation");
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //Console.WriteLine();
+            //puzzle.SetWallData(puzzleInt);
+            //puzzle.Rotate90Fast();
+            //Console.WriteLine("Fast rotate");
+            //Console.WriteLine(puzzle.PrintPuzzle());
+
+
+            // Testing fast rotation
+            //Puzzle puzzle = new Puzzle(5);
+            //int col = 2;
+            //puzzle.SetWallCell(0, col, true);
+            //puzzle.SetWallCell(1, col, true);
+            //puzzle.SetWallCell(2, col, false);
+            //puzzle.SetWallCell(3, col, false);
+            //puzzle.SetWallCell(4, col, true);
+            //Console.WriteLine("Original");
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+            //Console.WriteLine(puzzle.PrintPuzzle());
+            //puzzle.Rotate90Fast();
+            //Console.WriteLine();
+            //Console.WriteLine("Fast Rotated");
+            //Console.WriteLine(Convert.ToString((long)puzzle.GetWallData(), 2).PadLeft(63, '0'));
+            //Console.WriteLine(puzzle.PrintPuzzle());
+
+
+
+
 
             //PrintBurnsidesLemma(2, 8);
             // These puzzle have symmetries removed
@@ -66,23 +639,23 @@ namespace LetItSlide
             //These are v1 puzzle but they have single holes removed
 
 
-            int size = 5;
-            Puzzle puzzle = new Puzzle(size);
-            var puzzleData = LoadPuzzlesFromFileBin(@$"c:\users\rober\documents\puzzledata for size {size} by {size} no holes.tx");
+            //int size = 5;
+            //Puzzle puzzle = new Puzzle(size);
+            //var puzzleData = LoadPuzzlesFromFile(@$"c:\users\rober\documents\puzzledata for size {size} by {size} no holes.txt");
 
-            int i = 0;
-            foreach (var data in puzzleData)
-            {
-                if (i > 100)
-                {
-                    break;
-                }
-                Console.WriteLine(data);
-                puzzle.SetWallData(data);
-                puzzle.PrintPuzzle();
-                Console.WriteLine();
-                i++;
-            }
+            //int i = 0;
+            //foreach (var data in puzzleData)
+            //{
+            //    if (i > 100)
+            //    {
+            //        break;
+            //    }
+            //    Console.WriteLine(data);
+            //    puzzle.SetWallData(data);
+            //    puzzle.PrintPuzzle();
+            //    Console.WriteLine();
+            //    i++;
+            //}
 
             // Testing HasSubPuzzle
             //int size = 5;
@@ -129,10 +702,7 @@ namespace LetItSlide
             private ulong wallData;
             private ulong tileData;
             private int size;
-            private List<int> powersOfTwos = new List<int>();
-
-            // Testing ChatGPT
-            private static readonly ulong[] Rotate90Lookup = new ulong[32];
+            public List<List<ulong>> LUT5x5 = new List<List<ulong>>();
 
             public Puzzle(int size)
             {
@@ -143,6 +713,76 @@ namespace LetItSlide
                 this.size = size;
                 wallData = 0;
                 tileData = 0;
+                // For these, the first element is the mask
+                // The second element is the fill
+                // First row 1x1
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000000000100010, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000000001000101, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000000010001010, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000000100010100, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000001000001000, 2UL });
+                // Second row 1x1
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000010001000001, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000100010100010, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000001000101000100, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000010001010001000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000100000100010000, 2UL });
+                // Third row 1x1
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000001000100000100000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000010001010001000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000100010100010000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000001000101000100000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000010000010001000000000, 2UL });
+                // Fourth row 1x1
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000100010000010000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000001000101000100000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000010001010001000000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000100010100010000000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001000001000100000000000000, 2UL });
+                // Fifth row 1x1
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000001000001000000000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000010100010000000000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000101000100000000000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001010001000000000000000000, 2UL });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000100010000000000000000000, 2UL });
+                // First row 2x2
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000000110010000100, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000001100100101001, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000011001001010010, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000000110000010000100, 0 });
+                // Second row 2x2
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000011001000010000011, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000110010010100100110, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000001100100101001001100, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000011000001000010011000, 0 });
+                // Third row 2x2
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000001100100001000001100000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000011001001010010011000000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000110010010100100110000000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001100000100001001100000000, 0 });
+                // Fourth row 2x2
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000010000100000110000000000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000100101001001100000000000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001001010010011000000000000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000010000100110000000000000, 0 });
+                // First row 3x3
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000000111010000100001000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000001110100011000110001, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000011100000100001000010, 0 });
+                // Second row 3x3
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000011101000010000100000111, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000111010001100011000101110, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001110000010000100001011100, 0 });
+                // 3rd row 3x3
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000100001000010000011100000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001000110001100010111000000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000001000010000101110000000, 0 });
+                // 1st row 4x4
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000111110000100001000010000, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001111000001000010000100001, 0 });
+                // 2nd row 4x4
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000001000010000100001000001111, 0 });
+                LUT5x5.Add(new List<ulong>() { 0b000000000000000000000000000000000000000000100001000010000111110, 0 });
             }
 
 
@@ -284,7 +924,7 @@ namespace LetItSlide
                 ulong r2 = Bmi2.X64.ParallelBitExtract(wallData, 0b0010000100001000010000100);
                 ulong r3 = Bmi2.X64.ParallelBitExtract(wallData, 0b0100001000010000100001000);
                 ulong r4 = Bmi2.X64.ParallelBitExtract(wallData, 0b1000010000100001000010000);
-                wallData = r0 | (r1 << 5) | (r2 << 10) | (r3 << 15) | (r4 << 20);
+                wallData = (r0 << 20) | (r1 << 15) | (r2 << 10) | (r3 << 5) | (r4);
             }
 
 
@@ -298,21 +938,21 @@ namespace LetItSlide
                 if (size == 3)
                 {
                     wallData = ((wallData << 6) & 0b0000000000000000000000000000000000000000000000000000000111000000) |
-                               ((wallData)      & 0b0000000000000000000000000000000000000000000000000000000000111000) |
+                               ((wallData) & 0b0000000000000000000000000000000000000000000000000000000000111000) |
                                ((wallData >> 6) & 0b0000000000000000000000000000000000000000000000000000000000000111);
                 }
                 if (size == 4)
                 {
                     wallData = ((wallData << 12) & 0b0000000000000000000000000000000000000000000000001111000000000000) |
-                               ((wallData << 4)  & 0b0000000000000000000000000000000000000000000000000000111100000000) |
-                               ((wallData >> 4)  & 0b0000000000000000000000000000000000000000000000000000000011110000) |
+                               ((wallData << 4) & 0b0000000000000000000000000000000000000000000000000000111100000000) |
+                               ((wallData >> 4) & 0b0000000000000000000000000000000000000000000000000000000011110000) |
                                ((wallData >> 12) & 0b0000000000000000000000000000000000000000000000000000000000001111);
                 }
                 if (size == 5)
                 {
                     wallData = ((wallData << 20) & 0b0000000000000000000000000000000000000001111100000000000000000000) |
                                ((wallData << 10) & 0b0000000000000000000000000000000000000000000011111000000000000000) |
-                               ((wallData)       & 0b0000000000000000000000000000000000000000000000000111110000000000) |
+                               ((wallData) & 0b0000000000000000000000000000000000000000000000000111110000000000) |
                                ((wallData >> 10) & 0b0000000000000000000000000000000000000000000000000000001111100000) |
                                ((wallData >> 20) & 0b0000000000000000000000000000000000000000000000000000000000011111);
                 }
@@ -320,8 +960,8 @@ namespace LetItSlide
                 {
                     wallData = ((wallData << 30) & 0b0000000000000000000000000000111111000000000000000000000000000000) |
                                ((wallData << 18) & 0b0000000000000000000000000000000000111111000000000000000000000000) |
-                               ((wallData << 6)  & 0b0000000000000000000000000000000000000000111111000000000000000000) |
-                               ((wallData >> 6)  & 0b0000000000000000000000000000000000000000000000111111000000000000) |
+                               ((wallData << 6) & 0b0000000000000000000000000000000000000000111111000000000000000000) |
+                               ((wallData >> 6) & 0b0000000000000000000000000000000000000000000000111111000000000000) |
                                ((wallData >> 18) & 0b0000000000000000000000000000000000000000000000000000111111000000) |
                                ((wallData >> 30) & 0b0000000000000000000000000000000000000000000000000000000000111111);
                 }
@@ -333,8 +973,8 @@ namespace LetItSlide
                     wallData = (wallData << 56) |
                     ((wallData << 40) & 0b0000000011111111000000000000000000000000000000000000000000000000) |
                     ((wallData << 24) & 0b0000000000000000111111110000000000000000000000000000000000000000) |
-                    ((wallData << 8)  & 0b0000000000000000000000001111111100000000000000000000000000000000) |
-                    ((wallData >> 8)  & 0b0000000000000000000000000000000011111111000000000000000000000000) |
+                    ((wallData << 8) & 0b0000000000000000000000001111111100000000000000000000000000000000) |
+                    ((wallData >> 8) & 0b0000000000000000000000000000000011111111000000000000000000000000) |
                     ((wallData >> 24) & 0b0000000000000000000000000000000000000000111111110000000000000000) |
                     ((wallData >> 40) & 0b0000000000000000000000000000000000000000000000001111111100000000) |
                     ((wallData >> 56));
@@ -363,15 +1003,17 @@ namespace LetItSlide
 
             //public bool HasSubPuzzles(StringBuilder sb)
 
-            public bool HasSubPuzzles()
+            // This is the old HasSubPuzzles method.
+            // It works and it's fast, but I need to see if I can do better
+            public bool HasSubPuzzlesOld()
             {
                 // This can probably be speed up via bit manipulation
                 // Loop over every size below the current puzzle size
-                for(int n = size - 1; n > 0; n--)
+                for (int n = size - 1; n > 0; n--)
                 {
-                    for(int row = 0; row < size - n + 1; row++)
+                    for (int row = 0; row < size - n + 1; row++)
                     {
-                        for(int col = 0; col < size - n + 1; col++)
+                        for (int col = 0; col < size - n + 1; col++)
                         {
                             bool hasSubPuzzles = true;
                             // From here, we need to check for a loop.
@@ -385,13 +1027,13 @@ namespace LetItSlide
 
                             // Check the top edge
                             // We only need to check above row, if row is greater than 0.
-                            if(row > 0 && hasSubPuzzles == true)
+                            if (row > 0 && hasSubPuzzles == true)
                             {
                                 // Loop over each cell in the row
-                                for(int i = 0; i < n; i++)
+                                for (int i = 0; i < n; i++)
                                 {
                                     // If a cell is empty, return false
-                                    if(GetWallCell(row - 1, col + i) == false)
+                                    if (GetWallCell(row - 1, col + i) == false)
                                     {
                                         hasSubPuzzles = false;
                                         break;
@@ -400,11 +1042,11 @@ namespace LetItSlide
                             }
 
                             // Check the left edge
-                            if(col > 0 && hasSubPuzzles == true)
+                            if (col > 0 && hasSubPuzzles == true)
                             {
-                                for(int i = 0; i < n; i++)
+                                for (int i = 0; i < n; i++)
                                 {
-                                    if( GetWallCell(row + i, col - 1) == false)
+                                    if (GetWallCell(row + i, col - 1) == false)
                                     {
                                         hasSubPuzzles = false;
                                         break;
@@ -417,7 +1059,7 @@ namespace LetItSlide
                             // We only need to check the bottom row if the current row + n is less than the puzzle size
                             if (row + n < size && hasSubPuzzles == true)
                             {
-                                for(int i = 0; i < n; i++)
+                                for (int i = 0; i < n; i++)
                                 {
                                     if (GetWallCell(row + n, col + i) == false)
                                     {
@@ -428,9 +1070,9 @@ namespace LetItSlide
                             }
 
                             // Check right edge
-                            if(col + n < size && hasSubPuzzles == true)
+                            if (col + n < size && hasSubPuzzles == true)
                             {
-                                for(int i = 0; i < n; i++)
+                                for (int i = 0; i < n; i++)
                                 {
                                     if (GetWallCell(row + i, col + n) == false)
                                     {
@@ -448,6 +1090,21 @@ namespace LetItSlide
                                 return true;
                             }
                         }
+                    }
+                }
+                return false;
+            }
+
+            public bool HasSubPuzzlesNew()
+            {
+                foreach (List<ulong> maskAndFill in LUT5x5)
+                {
+                    // Checks if wallData contains all of the mask
+                    if ((wallData & maskAndFill[0]) == maskAndFill[0])
+                    {
+                        // This probably works but I need to add the proper data to the fill table
+                        //wallData |= maskAndFill[1];
+                        return true;
                     }
                 }
                 return false;
@@ -540,9 +1197,9 @@ namespace LetItSlide
         {
             using (FileStream fs = new FileStream(filePath, FileMode.Create))
             {
-                using(BinaryWriter w = new BinaryWriter(fs))
+                using (BinaryWriter w = new BinaryWriter(fs))
                 {
-                    foreach(var element in puzzles)
+                    foreach (var element in puzzles)
                     {
                         w.Write(element);
                     }
@@ -585,7 +1242,7 @@ namespace LetItSlide
 
         #region Puzzle Generation
 
-        public static void GeneratePuzzles(int size, bool save, bool excludeSubPuzzles, bool excludeSymmetries)
+        public static void GeneratePuzzles(int size, bool save, bool includeSubPuzzles, bool includeSymmetries)
         {
             HashSet<ulong> uniqueData = new HashSet<ulong>();
 
@@ -606,9 +1263,9 @@ namespace LetItSlide
                     puzzle.SetWallData(i);
 
                     // Check for holes before doing all the rotation checks
-                    if (excludeSubPuzzles == true)
+                    if (includeSubPuzzles == false)
                     {
-                        if (puzzle.HasSubPuzzles())
+                        if (puzzle.HasSubPuzzlesNew())
                         {
                             continue;
                         }
@@ -620,7 +1277,7 @@ namespace LetItSlide
                     //    uniqueData.Add(i);
                     //}
 
-                    if (excludeSymmetries == true)
+                    if (includeSymmetries == false)
                     {
                         List<ulong> transformations = new List<ulong>
                         {
@@ -665,9 +1322,9 @@ namespace LetItSlide
             // At this point, uniqueData has all the data we want; however, it's unsorted because of the Parallel.For loop
             List<ulong> sortedList = new List<ulong>(uniqueData);
             sortedList.Sort();
-            
+
             // Sometimes we don't want to save, such as during testing
-            if(save == true)
+            if (save == true)
             {
                 //Save the unique data to a file or process it further
                 SavePuzzlesToFileBin(sortedList, @$"C:\Users\rober\Documents\PuzzleData for size {size} by {size} no holes.bin");
@@ -683,7 +1340,7 @@ namespace LetItSlide
         // https://math.stackexchange.com/questions/570003/how-many-unique-patterns-exist-for-a-n-times-n-grid
         // More info can also be found here:
         // https://www.youtube.com/watch?v=D0d9bYZ_qDY
-        
+
         /// <summary>
         /// Calculates the number of puzzle minus the all the duplicates
         /// </summary>
